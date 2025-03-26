@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>像素生成器马里奥版（小冯制作）</title>
+    <style>
+        :root {
+            --mario-red: #e52521;
+            --mario-blue: #049cd8;
+            --mario-yellow: #f8d84a;
+            --mario-brown: #8b4513;
+            --mario-green: #7cbb00;
+            --mario-bg: #f0f0f0;
+            --mario-text: #333;
+            --mario-white: #fff;
+            --mario-black: #000;
+        }
+        
+        body {
+            font-family: 'Press Start 2P', cursive;
+            background-color: var(--mario-bg);
+            color: var(--mario-text);
+            margin: 0;
+            padding: 0;
+            background-image: 
+                linear-gradient(45deg, #ddd 25%, transparent 25%),
+                linear-gradient(-45deg, #ddd 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, #ddd 75%),
+                linear-gradient(-45deg, transparent 75%, #ddd 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: var(--mario-white);
+            border: 8px solid var(--mario-red);
+            border-radius: 15px;
+            box-shadow: 
+                0 0 0 8px var(--mario-yellow),
+                0 0 0 16px var(--mario-blue),
+                0 10px 20px rgba(0,0,0,0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .container::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 10px;
+            background: repeating-linear-gradient(
+                to right,
+                var(--mario-red),
+                var(--mario-red) 20px,
+                var(--mario-white) 20px,
+                var(--mario-white) 40px
+            );
+        }
+        
+        h1 {
+            text-align: center;
+            color: var(--mario-red);
+            text-shadow: 
+                3px 3px 0 var(--mario-yellow),
+                6px 6px 0 var(--mario-blue);
+            font-size: 2.5rem;
+            margin: 20px 0 30px;
+            position: relative;
+            display: inline-block;
+            padding: 0 20px;
+        }
+        
+        h1::before, h1::after {
+            content: "★";
+            color: var(--mario-yellow);
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.5rem;
+        }
+        
+        h1::before {
+            left: -10px;
+        }
+        
+        h1::after {
+            right: -10px;
+        }
+        
+        .controls-panel {
+            background-color: var(--mario-blue);
+            padding: 20px;
+            border-radius: 10px;
+            border: 4px solid var(--mario-black);
+            box-shadow: inset 0 0 0 4px var(--mario-white);
+            margin-bottom: 30px;
+            position: relative;
+        }
+        
+        .controls-panel::after {
+            content: "";
+            position: absolute;
+            bottom: -15px;
+            left: 20px;
+            width: 80%;
+            height: 15px;
+            background-color: var(--mario-brown);
+            clip-path: polygon(0 0, 100% 0, 90% 100%, 10% 100%);
+            z-index: -1;
+        }
+        
+        .control-group {
+            margin-bottom: 15px;
+            background-color: var(--mario-white);
+            padding: 15px;
+            border-radius: 8px;
+            border: 3px solid var(--mario-black);
+            box-shadow: 3px 3px 0 var(--mario-black);
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--mario-red);
+            font-size: 0.8rem;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            height: 20px;
+            -webkit-appearance: none;
+            background: var(--mario-yellow);
+            border: 3px solid var(--mario-black);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: var(--mario-red);
+            border: 3px solid var(--mario-black);
+            border-radius: 50%;
+            box-shadow: -407px 0 0 400px var(--mario-green);
+            cursor: pointer;
+        }
+        
+        .value-display {
+            display: inline-block;
+            background-color: var(--mario-black);
+            color: var(--mario-yellow);
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            margin-left: 10px;
+            min-width: 40px;
+            text-align: center;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+        
+        button {
+            background-color: var(--mario-red);
+            color: var(--mario-white);
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border: 3px solid var(--mario-black);
+            box-shadow: 3px 3px 0 var(--mario-black);
+            transition: all 0.1s;
+            position: relative;
+            overflow: hidden;
+            flex-grow: 1;
+            text-align: center;
+        }
+        
+        button::after {
+            content: "";
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            right: -10px;
+            bottom: -10px;
+            background: linear-gradient(
+                45deg,
+                transparent 45%,
+                rgba(255,255,255,0.3) 50%,
+                transparent 55%
+            );
+            background-size: 200% 200%;
+            animation: shine 3s infinite;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        button:hover {
+            background-color: #c41c1a;
+            transform: translate(1px, 1px);
+            box-shadow: 2px 2px 0 var(--mario-black);
+        }
+        
+        button:hover::after {
+            opacity: 1;
+        }
+        
+        button:active {
+            transform: translate(3px, 3px);
+            box-shadow: none;
+        }
+        
+        .download-btn {
+            background-color: var(--mario-green);
+        }
+        
+        .download-btn:hover {
+            background-color: #6ba800;
+        }
+        
+        .canvas-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 30px;
+        }
+        
+        .canvas-wrapper {
+            text-align: center;
+            background-color: var(--mario-white);
+            padding: 15px;
+            border-radius: 10px;
+            border: 4px solid var(--mario-black);
+            box-shadow: 
+                5px 5px 0 var(--mario-black),
+                inset 0 0 0 3px var(--mario-yellow);
+            position: relative;
+            flex: 1;
+            min-width: 300px;
+        }
+        
+        .canvas-wrapper::before {
+            content: "";
+            position: absolute;
+            top: -10px;
+            left: 20px;
+            width: 40px;
+            height: 20px;
+            background-color: var(--mario-red);
+            clip-path: polygon(0 0, 100% 0, 80% 100%, 20% 100%);
+        }
+        
+        h3 {
+            color: var(--mario-blue);
+            margin: 0 0 15px;
+            font-size: 1rem;
+            text-shadow: 2px 2px 0 var(--mario-yellow);
+            position: relative;
+            display: inline-block;
+        }
+        
+        h3::after {
+            content: "";
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(
+                to right,
+                transparent,
+                var(--mario-red),
+                transparent
+            );
+        }
+        
+        canvas {
+            border: 3px solid var(--mario-black);
+            max-width: 100%;
+            background-color: var(--mario-bg);
+            image-rendering: pixelated;
+            display: block;
+            margin: 0 auto;
+        }
+        
+        .mario-character {
+            position: absolute;
+            width: 60px;
+            height: 80px;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 80"><rect x="20" y="10" width="20" height="10" fill="%23e52521"/><rect x="15" y="20" width="30" height="30" fill="%23e52521"/><rect x="10" y="30" width="10" height="20" fill="%238b4513"/><rect x="40" y="30" width="10" height="20" fill="%238b4513"/><rect x="15" y="50" width="10" height="20" fill="%238b4513"/><rect x="35" y="50" width="10" height="20" fill="%238b4513"/><rect x="25" y="20" width="10" height="10" fill="%23f8d84a"/><rect x="20" y="30" width="5" height="5" fill="%23fff"/><rect x="35" y="30" width="5" height="5" fill="%23fff"/><rect x="25" y="40" width="10" height="5" fill="%238b4513"/></svg>');
+            background-repeat: no-repeat;
+            z-index: 10;
+            pointer-events: none;
+        }
+        
+        .coin {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30"><circle cx="15" cy="15" r="12" fill="%23f8d84a"/><circle cx="15" cy="15" r="10" fill="%23e5c100"/><circle cx="15" cy="15" r="8" fill="%23f8d84a"/></svg>');
+            background-repeat: no-repeat;
+            animation: float 2s ease-in-out infinite;
+            z-index: 5;
+            pointer-events: none;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        @keyframes shine {
+            0% { background-position: -100% -100%; }
+            100% { background-position: 100% 100%; }
+        }
+        
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.5rem;
+                text-shadow: 
+                    2px 2px 0 var(--mario-yellow),
+                    4px 4px 0 var(--mario-blue);
+            }
+            
+            .container {
+                padding: 15px;
+                margin: 10px;
+                border-width: 5px;
+            }
+            
+            .controls-panel {
+                padding: 15px;
+            }
+            
+            button {
+                padding: 10px;
+                font-size: 0.7rem;
+            }
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <h1>像素生成器马里奥版（小冯制作）</h1>
+        
+        <div class="controls-panel">
+            <div class="control-group">
+                <label for="imageUpload">上传图片</label>
+                <input type="file" id="imageUpload" accept="image/*">
+            </div>
+            
+            <div class="control-group">
+                <label for="pixelSize">像素大小 <span id="pixelSizeValue" class="value-display">8</span></label>
+                <input type="range" id="pixelSize" min="4" max="16" value="8" step="2">
+            </div>
+            
+            <div class="control-group">
+                <label for="dithering">抖动效果 <span id="ditheringValue" class="value-display">50%</span></label>
+                <input type="range" id="dithering" min="0" max="100" value="50">
+            </div>
+            
+            <div class="button-group">
+                <button id="processBtn">生成像素图</button>
+                <button id="downloadBtn" class="download-btn">下载像素图</button>
+            </div>
+        </div>
+        
+        <div class="canvas-container">
+            <div class="canvas-wrapper">
+                <h3>原始图片</h3>
+                <canvas id="originalCanvas"></canvas>
+            </div>
+            <div class="canvas-wrapper">
+                <h3>像素风格</h3>
+                <canvas id="pixelCanvas"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 添加马里奥角色装饰元素
+        function addDecoration() {
+            const container = document.querySelector('.container');
+            
+            // 添加马里奥角色
+            const mario = document.createElement('div');
+            mario.className = 'mario-character';
+            mario.style.bottom = '20px';
+            mario.style.right = '30px';
+            container.appendChild(mario);
+            
+            // 添加金币
+            for (let i = 0; i < 3; i++) {
+                const coin = document.createElement('div');
+                coin.className = 'coin';
+                coin.style.top = `${Math.random() * 50 + 20}px`;
+                coin.style.left = `${Math.random() * 100 + 20}px`;
+                coin.style.animationDelay = `${i * 0.5}s`;
+                container.appendChild(coin);
+            }
+        }
+        
+        // NES风格调色板 (56色)
+        const nesPalette = [
+            // 红色系
+            [0x7C, 0x07, 0x07], [0xB0, 0x07, 0x07], [0xD8, 0x07, 0x07], [0xFF, 0x07, 0x07],
+            [0xFF, 0x3F, 0x3F], [0xFF, 0x7B, 0x7B], [0xFF, 0xB7, 0xB7], [0xFF, 0xCF, 0xCF],
+            // 蓝色系
+            [0x00, 0x00, 0x7C], [0x00, 0x00, 0xB0], [0x00, 0x00, 0xD8], [0x00, 0x00, 0xFF],
+            [0x3F, 0x3F, 0xFF], [0x7B, 0x7B, 0xFF], [0xB7, 0xB7, 0xFF], [0xCF, 0xCF, 0xFF],
+            // 绿色系
+            [0x00, 0x7C, 0x00], [0x00, 0xB0, 0x00], [0x00, 0xD8, 0x00], [0x00, 0xFF, 0x00],
+            [0x3F, 0xFF, 0x3F], [0x7B, 0xFF, 0x7B], [0xB7, 0xFF, 0xB7], [0xCF, 0xFF, 0xCF],
+            // 黄色/棕色系
+            [0x7C, 0x7C, 0x00], [0xB0, 0xB0, 0x00], [0xD8, 0xD8, 0x00], [0xFF, 0xFF, 0x00],
+            [0xFF, 0xFF, 0x3F], [0xFF, 0xFF, 0x7B], [0xFF, 0xFF, 0xB7], [0xFF, 0xFF, 0xCF],
+            [0x7C, 0x3F, 0x00], [0xB0, 0x5B, 0x00], [0xD8, 0x73, 0x00], [0xFF, 0x87, 0x00],
+            // 紫色/粉色系
+            [0x7C, 0x00, 0x7C], [0xB0, 0x00, 0xB0], [0xD8, 0x00, 0xD8], [0xFF, 0x00, 0xFF],
+            [0xFF, 0x3F, 0xFF], [0xFF, 0x7B, 0xFF], [0xFF, 0xB7, 0xFF], [0xFF, 0xCF, 0xFF],
+            // 青色系
+            [0x00, 0x7C, 0x7C], [0x00, 0xB0, 0xB0], [0x00, 0xD8, 0xD8], [0x00, 0xFF, 0xFF],
+            [0x3F, 0xFF, 0xFF], [0x7B, 0xFF, 0xFF], [0xB7, 0xFF, 0xFF], [0xCF, 0xFF, 0xFF],
+            // 灰色/黑色/白色
+            [0x00, 0x00, 0x00], [0x3F, 0x3F, 0x3F], [0x7B, 0x7B, 0x7B], [0xB7, 0xB7, 0xB7],
+            [0xCF, 0xCF, 0xCF], [0xFF, 0xFF, 0xFF]
+        ];
+
+        // 获取DOM元素
+        const imageUpload = document.getElementById('imageUpload');
+        const pixelSize = document.getElementById('pixelSize');
+        const pixelSizeValue = document.getElementById('pixelSizeValue');
+        const dithering = document.getElementById('dithering');
+        const ditheringValue = document.getElementById('ditheringValue');
+        const processBtn = document.getElementById('processBtn');
+        const originalCanvas = document.getElementById('originalCanvas');
+        const pixelCanvas = document.getElementById('pixelCanvas');
+        const downloadBtn = document.getElementById('downloadBtn');
+        
+        const originalCtx = originalCanvas.getContext('2d');
+        const pixelCtx = pixelCanvas.getContext('2d');
+        let uploadedImage = null;
+        
+        // 最大处理尺寸
+        const MAX_WIDTH = 512;
+        const MAX_HEIGHT = 512;
+        
+        // 更新滑块值显示
+        pixelSize.addEventListener('input', updateValues);
+        dithering.addEventListener('input', updateValues);
+        
+        function updateValues() {
+            pixelSizeValue.textContent = pixelSize.value;
+            ditheringValue.textContent = `${dithering.value}%`;
+        }
+        
+        // 图片上传处理
+        imageUpload.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                uploadedImage = new Image();
+                uploadedImage.onload = () => {
+                    drawOriginalImage();
+                };
+                uploadedImage.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+        
+        // 绘制原始图片
+        function drawOriginalImage() {
+            let width = uploadedImage.width;
+            let height = uploadedImage.height;
+            
+            // 调整尺寸不超过最大值
+            if (width > MAX_WIDTH || height > MAX_HEIGHT) {
+                const ratio = Math.min(MAX_WIDTH / width, MAX_HEIGHT / height);
+                width = Math.floor(width * ratio);
+                height = Math.floor(height * ratio);
+            }
+            
+            originalCanvas.width = width;
+            originalCanvas.height = height;
+            pixelCanvas.width = width;
+            pixelCanvas.height = height;
+            
+            // 绘制原始图片
+            originalCtx.drawImage(uploadedImage, 0, 0, width, height);
+        }
+        
+        // 找到最接近的NES颜色
+        function findClosestNESColor(r, g, b) {
+            let minDistance = Infinity;
+            let closestColor = [0, 0, 0];
+            
+            for (const color of nesPalette) {
+                const distance = Math.sqrt(
+                    Math.pow(r - color[0], 2) + 
+                    Math.pow(g - color[1], 2) + 
+                    Math.pow(b - color[2], 2)
+                );
+                
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    closestColor = color;
+                }
+            }
+            
+            return closestColor;
+        }
+        
+        // 应用抖动效果
+        function applyDithering(imageData, ditherAmount) {
+            const data = imageData.data;
+            const width = imageData.width;
+            const height = imageData.height;
+            
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                    const idx = (y * width + x) * 4;
+                    
+                    // 只在部分像素应用抖动(根据ditherAmount)
+                    if (Math.random() * 100 < ditherAmount) {
+                        // 随机选择相邻NES颜色
+                        const r = data[idx];
+                        const g = data[idx + 1];
+                        const b = data[idx + 2];
+                        
+                        const color1 = findClosestNESColor(r, g, b);
+                        const color2 = findClosestNESColor(
+                            Math.max(0, r - 50), 
+                            Math.max(0, g - 50), 
+                            Math.max(0, b - 50)
+                        );
+                        
+                        // 随机混合两种颜色
+                        if (Math.random() > 0.5) {
+                            data[idx] = color1[0];
+                            data[idx + 1] = color1[1];
+                            data[idx + 2] = color1[2];
+                        } else {
+                            data[idx] = color2[0];
+                            data[idx + 1] = color2[1];
+                            data[idx + 2] = color2[2];
+                        }
+                    }
+                }
+            }
+            
+            return imageData;
+        }
+        
+        // 处理图片生成像素风格
+        processBtn.addEventListener('click', () => {
+            if (!uploadedImage) {
+                alert('请先上传图片');
+                return;
+            }
+            
+            const size = parseInt(pixelSize.value);
+            const ditherAmount = parseInt(dithering.value);
+            
+            // 创建临时canvas来处理图像
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = originalCanvas.width;
+            tempCanvas.height = originalCanvas.height;
+            const tempCtx = tempCanvas.getContext('2d');
+            
+            // 绘制缩小版的图像
+            const scaledWidth = Math.ceil(originalCanvas.width / size);
+            const scaledHeight = Math.ceil(originalCanvas.height / size);
+            
+            tempCtx.imageSmoothingEnabled = false;
+            tempCtx.drawImage(
+                originalCanvas, 
+                0, 0, 
+                originalCanvas.width, originalCanvas.height,
+                0, 0,
+                scaledWidth, scaledHeight
+            );
+            
+            // 获取缩小后的图像数据
+            let imageData = tempCtx.getImageData(0, 0, scaledWidth, scaledHeight);
+            const data = imageData.data;
+            
+            // 处理每个像素块 - 转换为NES调色板
+            for (let y = 0; y < scaledHeight; y++) {
+                for (let x = 0; x < scaledWidth; x++) {
+                    const index = (y * scaledWidth + x) * 4;
+                    
+                    const r = data[index];
+                    const g = data[index + 1];
+                    const b = data[index + 2];
+                    
+                    // 找到最接近的NES颜色
+                    const nesColor = findClosestNESColor(r, g, b);
+                    
+                    data[index] = nesColor[0];     // R
+                    data[index + 1] = nesColor[1]; // G
+                    data[index + 2] = nesColor[2]; // B
+                }
+            }
+            
+            // 应用抖动效果
+            if (ditherAmount > 0) {
+                imageData = applyDithering(imageData, ditherAmount);
+            }
+            
+            // 将处理后的数据放回临时canvas
+            tempCtx.putImageData(imageData, 0, 0);
+            
+            // 放大回原始尺寸
+            pixelCtx.imageSmoothingEnabled = false;
+            pixelCtx.clearRect(0, 0, pixelCanvas.width, pixelCanvas.height);
+            pixelCtx.drawImage(
+                tempCanvas,
+                0, 0,
+                scaledWidth, scaledHeight,
+                0, 0,
+                originalCanvas.width, originalCanvas.height
+            );
+        });
+        
+        // 下载处理后的图片
+        downloadBtn.addEventListener('click', () => {
+            if (!uploadedImage) {
+                alert('没有可下载的图片');
+                return;
+            }
+            
+            const link = document.createElement('a');
+            link.download = `mario-pixel-art-${new Date().getTime()}.png`;
+            link.href = pixelCanvas.toDataURL('image/png');
+            link.click();
+        });
+        
+        // 页面加载完成后添加装饰元素
+        window.addEventListener('DOMContentLoaded', () => {
+            addDecoration();
+            updateValues();
+        });
+    </script>
+</body>
+</html>
